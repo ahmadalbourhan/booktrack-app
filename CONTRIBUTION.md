@@ -1,6 +1,6 @@
 # Contribution Guide
 
-This document explains how to collaborate on the **BookTrack Application** project.  
+This document explains how to collaborate on the **Book Track Application** project.  
 We keep `main` clean, use `docs/*` branches for documentation, and work together on `develop`.
 
 ---
