@@ -1,44 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import './Home.css';
+import { useState, useEffect } from "react";
+import { supabase } from "../utils/supabase";
 
 export default function Home() {
-    const [books, setBooks] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        // Fetch books data
-        const fetchBooks = async () => {
-            try {
-                // Replace with your API endpoint
-                const response = await fetch('/api/books');
-                const data = await response.json();
-                setBooks(data);
-            } catch (error) {
-                console.error('Error fetching books:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    async function getBooks() {
+      try {
+        const { data, error } = await supabase
+          .from("books")
+          .select("id, title, author, status, current_page, total_pages");
 
-        fetchBooks();
-    }, []);
+        if (error) throw error;
+        setBooks(data || []);
+      } catch (err) {
+        console.error("Error fetching books:", err);
+        setError("Failed to load books");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    if (loading) return <div className="loading">Loading...</div>;
+    getBooks();
+  }, []);
 
-    return (
-        <div className="home">
-            <h1>Welcome to BookTrack</h1>
-            <p>Track and manage your reading collection</p>
-            
-            <div className="books-grid">
-                {books.map((book) => (
-                    <div key={book.id} className="book-card">
-                        <img src={book.cover} alt={book.title} />
-                        <h3>{book.title}</h3>
-                        <p>{book.author}</p>
-                    </div>
-                ))}
-            </div>
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return "status-completed";
+      case "reading":
+        return "status-reading";
+      case "want-to-read":
+        return "status-wanttoread";
+      default:
+        return "status-default";
+    }
+  };
+
+  const getProgressPercentage = (current, total) => {
+    return total > 0 ? Math.round((current / total) * 100) : 0;
+  };
+
+  if (loading) return <div className="loading">Loading your books...</div>;
+  if (error) return <div className="error-message">{error}</div>;
+
+  return (
+    <div className="home-container">
+      <div className="home-header">
+        <h1>My Books</h1>
+        <p>Track your reading progress</p>
+      </div>
+
+      {books.length === 0 ? (
+        <div className="empty-state">
+          <p>No books yet. Start adding your books!</p>
         </div>
-    );
+      ) : (
+        <div className="books-grid">
+          {books.map((book) => {
+            const progress = getProgressPercentage(
+              book.current_page,
+              book.total_pages,
+            );
+            return (
+              <div key={book.id} className="book-card">
+                <div className="book-header">
+                  <h3 className="book-title">{book.title}</h3>
+                  <span
+                    className={`status-badge ${getStatusColor(book.status)}`}
+                  >
+                    {book.status}
+                  </span>
+                </div>
+                <p className="book-author">
+                  by {book.author || "Unknown Author"}
+                </p>
+                <div className="progress-section">
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <p className="progress-text">
+                    {book.current_page} / {book.total_pages} pages
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
