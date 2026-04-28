@@ -36,20 +36,6 @@ export default function Header() {
             <Link to="/" className="nav-link" onClick={() => setIsOpen(false)}>
               Home
             </Link>
-            <Link
-              to="/login"
-              className="nav-link"
-              onClick={() => setIsOpen(false)}
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="nav-link btn-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              Sign Up
-            </Link>
           </div>
         </div>
       </nav>
